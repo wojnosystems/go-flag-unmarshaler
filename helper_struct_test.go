@@ -10,13 +10,14 @@ type appConfigMock struct {
 	Name        optional.String `flag:"name" flag-short:"n"`
 	ThreadCount optional.Int    `flag:"thread-count" flag-short:"c"`
 	Databases   []dbConfigMock  `flag:"databases"`
+	Enabled     optional.Bool
 }
 
 func (m appConfigMock) IsEqual(o *appConfigMock) bool {
 	if o == nil {
 		return false
 	}
-	if !m.Name.IsEqual(o.Name) || !m.ThreadCount.IsEqual(o.ThreadCount) {
+	if !m.Name.IsEqual(o.Name) || !m.ThreadCount.IsEqual(o.ThreadCount) || !m.Enabled.IsEqual(o.Enabled) {
 		return false
 	}
 	if len(m.Databases) != len(o.Databases) {

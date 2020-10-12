@@ -149,17 +149,6 @@ func (e *unmarshaller) parseRegistry() *parse_register.Registry {
 	return e.ParseRegistry
 }
 
-// fieldNameOrDefault attempts to read the tags to obtain an alternate name, if no tag found, defaults back to
-// using the name provided to the field when the member was defined in Go
-func fieldNameOrDefault(fieldT reflect.StructField) string {
-	fieldName := fieldT.Tag.Get("flag")
-	if "" != fieldName {
-		return fieldName
-	} else {
-		return fieldT.Name
-	}
-}
-
 // flagNamesOrDefault attempts to read the tags to obtain an alternate name, if no tag found, defaults back to
 // using the name provided to the field when the member was defined in Go
 func flagNamesOrDefault(fieldT reflect.StructField, structPrefix string) (fieldNames []string) {

@@ -90,6 +90,20 @@ func TestType_Unmarshall(t *testing.T) {
 				},
 			},
 		},
+		"bool": {
+			input: Group{
+				"do-thing",
+				[]KeyValue{
+					{
+						Key:   "--Enabled",
+						Value: "true",
+					},
+				},
+			},
+			expected: appConfigMock{
+				Enabled: optional.BoolFrom(true),
+			},
+		},
 	}
 	for caseName, c := range cases {
 		t.Run(caseName, func(t *testing.T) {

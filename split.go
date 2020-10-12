@@ -21,8 +21,8 @@ func Split(args []string) (out []Group) {
 					CommandName: "",
 				})
 			}
-			var value string
 			key := arg
+			value := "true"
 			if flagHasValue(arg) {
 				splits := strings.SplitN(arg, keyValueSeparator, 2)
 				key = splits[0]

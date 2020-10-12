@@ -11,13 +11,27 @@ func TestSplit(t *testing.T) {
 		expected []Group
 	}{
 		"none": {},
-		"one": {
+		"bool long": {
 			args: []string{"--one"},
 			expected: []Group{
 				{
 					Flags: []KeyValue{
 						{
-							Key: "--one",
+							Key:   "--one",
+							Value: "true",
+						},
+					},
+				},
+			},
+		},
+		"bool short": {
+			args: []string{"-o"},
+			expected: []Group{
+				{
+					Flags: []KeyValue{
+						{
+							Key:   "-o",
+							Value: "true",
 						},
 					},
 				},
