@@ -1,4 +1,4 @@
-package go_flag_unmarshaller
+package flag_unmarshaller
 
 // flagReader reads environment variables
 type flagReader interface {

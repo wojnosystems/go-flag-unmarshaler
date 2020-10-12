@@ -1,4 +1,4 @@
-package go_flag_unmarshaller
+package flag_unmarshaller
 
 // Defines a set of objects used with testing
 
@@ -10,14 +10,14 @@ type appConfigMock struct {
 	Name        optional.String `flag:"name" flag-short:"n"`
 	ThreadCount optional.Int    `flag:"thread-count" flag-short:"c"`
 	Databases   []dbConfigMock  `flag:"databases"`
-	Enabled     optional.Bool
+	Enabled     bool
 }
 
 func (m appConfigMock) IsEqual(o *appConfigMock) bool {
 	if o == nil {
 		return false
 	}
-	if !m.Name.IsEqual(o.Name) || !m.ThreadCount.IsEqual(o.ThreadCount) || !m.Enabled.IsEqual(o.Enabled) {
+	if !m.Name.IsEqual(o.Name) || !m.ThreadCount.IsEqual(o.ThreadCount) || m.Enabled != o.Enabled {
 		return false
 	}
 	if len(m.Databases) != len(o.Databases) {

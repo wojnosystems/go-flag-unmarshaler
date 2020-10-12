@@ -1,4 +1,4 @@
-package go_flag_unmarshaller
+package flag_unmarshaller
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -101,7 +101,7 @@ func TestType_Unmarshall(t *testing.T) {
 				},
 			},
 			expected: appConfigMock{
-				Enabled: optional.BoolFrom(true),
+				Enabled: true,
 			},
 		},
 	}
