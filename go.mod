@@ -1,4 +1,4 @@
-module github.com/wojnosystems/go-flag-unmarshaller
+module github.com/wojnosystems/go-flag-unmarshaler
 
 go 1.14
 

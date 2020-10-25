@@ -1,4 +1,4 @@
-package flag_unmarshaller
+package flag_unmarshaler
 
 // Reader reads flags
 type Reader interface {

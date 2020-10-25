@@ -1,4 +1,4 @@
-package flag_unmarshaller
+package flag_unmarshaler
 
 // ErrProgramming is an error that is encountered due to the developer misusing the unmarshaler.Unmarshal method.
 type ErrProgramming struct {

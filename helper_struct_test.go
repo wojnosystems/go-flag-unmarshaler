@@ -1,4 +1,4 @@
-package flag_unmarshaller
+package flag_unmarshaler
 
 // Defines a set of objects used with testing
 

@@ -8,7 +8,7 @@ Reads os.Args and turns them into Group objects which can be passed into the Unm
 package main
 
 import (
-  "github.com/wojnosystems/go-flag-unmarshaller"
+  "github.com/wojnosystems/go-flag-unmarshaler"
   "log"
   "os"
 )
@@ -22,20 +22,20 @@ type command1Flags struct {
 }
 
 func main() {
-  commands := flag_unmarshaller.Split(os.Args[1:])
+  commands := flag_unmarshaler.Split(os.Args[1:])
   if len(commands) < 2 {
     log.Panic("at least 1 command required")
   }
-  flagParser := flag_unmarshaller.New(&commands[0])
+  flagParser := flag_unmarshaler.New(&commands[0])
   var globals globalFlags
   if commands[0].CommandName == "" {
-    _ = flagParser.Unmarshall(&globals)
+    _ = flagParser.Unmarshal(&globals)
   }
-  flagParser = flag_unmarshaller.New(&commands[1])
+  flagParser = flag_unmarshaler.New(&commands[1])
   switch commands[1].CommandName {
     case "connect":
       var command1Options command1Flags 
-      _ = flagParser.Unmarshall(&command1Options)
+      _ = flagParser.Unmarshal(&command1Options)
       if globals.Enabled {
         // do thing if enabled
       }
