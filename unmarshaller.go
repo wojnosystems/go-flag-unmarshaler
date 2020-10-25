@@ -9,23 +9,23 @@ import (
 	"strconv"
 )
 
-// unmarshaller creates an environment parser given the provided registry
-type unmarshaller struct {
+// unmarshaler creates an environment parser given the provided registry
+type unmarshaler struct {
 	// flags is the source of environment variables.
 	// If you leave it blank, it will default to using the operating system environment variables with no prefixes.
-	flags flagReader
+	flags Reader
 	// ParseRegistry maps go-default and custom types to members of the provided structure. If left blank, defaults to just Go's primitives being mapped
 	ParseRegistry parse_register.ValueSetter
 }
 
-func New(flags flagReader) Unmarshaller {
+func New(flags Reader) Unmarshaler {
 	return NewWithTypeParsers(
 		flags,
 		defaultParseRegister)
 }
 
-func NewWithTypeParsers(flags flagReader, parseRegistry parse_register.ValueSetter) Unmarshaller {
-	return &unmarshaller{
+func NewWithTypeParsers(flags Reader, parseRegistry parse_register.ValueSetter) Unmarshaler {
+	return &unmarshaler{
 		flags:         flags,
 		ParseRegistry: parseRegistry,
 	}
@@ -38,14 +38,14 @@ var (
 // Unmarshall reads the environment variables and writes them to into.
 // into should be a reference to a struct
 // This method will do some basic checks on the into value, but to help developers pass in the correct values
-func (e *unmarshaller) Unmarshall(into interface{}) (err error) {
-	return e.UnmarshallWithEmitter(into, defaultNoOpSetReceiver)
+func (e *unmarshaler) Unmarshal(into interface{}) (err error) {
+	return e.UnmarshalWithEmitter(into, defaultNoOpSetReceiver)
 }
 
 // Unmarshall reads the environment variables and writes them to into.
 // into should be a reference to a struct
 // This method will do some basic checks on the into value, but to help developers pass in the correct values
-func (e *unmarshaller) UnmarshallWithEmitter(into interface{}, emitter SetReceiver) (err error) {
+func (e *unmarshaler) UnmarshalWithEmitter(into interface{}, emitter SetReceiver) (err error) {
 	rootV := reflect.ValueOf(into)
 	err = e.validateDestination(rootV, rootV.Type())
 	if err != nil {
@@ -58,7 +58,7 @@ func (e *unmarshaller) UnmarshallWithEmitter(into interface{}, emitter SetReceiv
 }
 
 // validateDestination does some basic checks to help users of this class avoid common pitfalls with more helpful messages
-func (e *unmarshaller) validateDestination(rootV reflect.Value, rootT reflect.Type) (err error) {
+func (e *unmarshaler) validateDestination(rootV reflect.Value, rootT reflect.Type) (err error) {
 	if rootV.IsNil() {
 		return NewErrProgramming("'into' argument must be not be nil")
 	}
@@ -73,7 +73,7 @@ func (e *unmarshaller) validateDestination(rootV reflect.Value, rootT reflect.Ty
 }
 
 // unmarshallStruct is the internal method, which can be called recursively. This performs the heavy-lifting
-func (e *unmarshaller) unmarshallStruct(structParentPath string, structRefV reflect.Value, structRefT reflect.Type, emitter SetReceiver) (err error) {
+func (e *unmarshaler) unmarshallStruct(structParentPath string, structRefV reflect.Value, structRefT reflect.Type, emitter SetReceiver) (err error) {
 	for i := 0; i < structRefV.NumField(); i++ {
 		fieldV := structRefV.Field(i)
 		fieldT := structRefT.Field(i)
@@ -86,7 +86,7 @@ func (e *unmarshaller) unmarshallStruct(structParentPath string, structRefV refl
 }
 
 // unmarshallField unmarshalls a value into a single field in a struct. Could be the root struct or a nested struct
-func (e *unmarshaller) unmarshallField(structParentPath string, fieldV reflect.Value, fieldT reflect.StructField, emitter SetReceiver) (err error) {
+func (e *unmarshaler) unmarshallField(structParentPath string, fieldV reflect.Value, fieldT reflect.StructField, emitter SetReceiver) (err error) {
 	if fieldV.CanSet() {
 		if fieldT.Type.Kind() == reflect.Slice {
 			flagNames := flagNamesOrDefault(fieldT, structParentPath)
@@ -108,7 +108,7 @@ func (e *unmarshaller) unmarshallField(structParentPath string, fieldV reflect.V
 }
 
 // unmarshallValue extracts a single value and sets it to a value in a struct
-func (e *unmarshaller) unmarshallValue(structFullPath string, fieldV reflect.Value, fieldT reflect.StructField, emitter SetReceiver) (err error) {
+func (e *unmarshaler) unmarshallValue(structFullPath string, fieldV reflect.Value, fieldT reflect.StructField, emitter SetReceiver) (err error) {
 	flagNames := flagNamesOrDefault(fieldT, structFullPath)
 	for _, name := range flagNames {
 		value, ok := e.flags.Get(name)
@@ -142,7 +142,7 @@ func (e *unmarshaller) unmarshallValue(structFullPath string, fieldV reflect.Val
 var defaultParseRegister = optional_parse_registry.NewWithGoPrimitives()
 
 // parseRegistry obtains a copy of the current registry, or uses the default go primitives, for convenience
-func (e *unmarshaller) parseRegistry() parse_register.ValueSetter {
+func (e *unmarshaler) parseRegistry() parse_register.ValueSetter {
 	if e.ParseRegistry == nil {
 		e.ParseRegistry = defaultParseRegister
 	}
@@ -177,7 +177,7 @@ func appendStructPath(parent string, name string) string {
 
 // unmarshallSlice operates on a slice of objects. It will initialize the slice, then populate all of its members
 // from the environment variables
-func (e *unmarshaller) unmarshallSlice(sliceFieldPath string, sliceValue reflect.Value, emitter SetReceiver) (err error) {
+func (e *unmarshaler) unmarshallSlice(sliceFieldPath string, sliceValue reflect.Value, emitter SetReceiver) (err error) {
 	var length int
 	length, err = elementsInSliceWithAddressPrefix(e.flags, sliceFieldPath+"[")
 	if err != nil {
@@ -200,7 +200,7 @@ func (e *unmarshaller) unmarshallSlice(sliceFieldPath string, sliceValue reflect
 var flagIndexRegexp = regexp.MustCompile(`^(\d+)`)
 
 // elementsInSliceWithAddressPrefix returns how big a slice should be to hold all of the variables defined in the environment
-func elementsInSliceWithAddressPrefix(flags flagReader, pathPrefix string) (length int, err error) {
+func elementsInSliceWithAddressPrefix(flags Reader, pathPrefix string) (length int, err error) {
 	maxIndex := int64(-1)
 	for _, key := range flags.Keys(pathPrefix) {
 		possibleNumber := flagIndexRegexp.FindString(key[len(pathPrefix):])

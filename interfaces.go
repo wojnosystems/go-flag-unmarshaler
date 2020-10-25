@@ -1,7 +1,7 @@
 package flag_unmarshaller
 
-// flagReader reads environment variables
-type flagReader interface {
+// Reader reads flags
+type Reader interface {
 	// Get the value of a single flag with any of the names in name
 	Get(flagNamed string) (value string, ok bool)
 	// Keys get a list of keys that begin with the prefix. If "" is passed, matches all and returns all keys
@@ -14,7 +14,7 @@ type SetReceiver interface {
 	ReceiveSet(structPath string, flagName string, value string)
 }
 
-type Unmarshaller interface {
-	Unmarshall(into interface{}) error
-	UnmarshallWithEmitter(into interface{}, emitter SetReceiver) error
+type Unmarshaler interface {
+	Unmarshal(into interface{}) error
+	UnmarshalWithEmitter(into interface{}, emitter SetReceiver) error
 }

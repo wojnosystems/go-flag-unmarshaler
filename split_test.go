@@ -10,7 +10,11 @@ func TestSplit(t *testing.T) {
 		args     []string
 		expected []Group
 	}{
-		"none": {},
+		"none": {
+			expected: []Group{
+				{},
+			},
+		},
 		"bool long": {
 			args: []string{"--one"},
 			expected: []Group{
@@ -53,6 +57,7 @@ func TestSplit(t *testing.T) {
 		"one command split": {
 			args: []string{"first", "--one=two"},
 			expected: []Group{
+				{},
 				{
 					CommandName: "first",
 					Flags: []KeyValue{
@@ -67,6 +72,7 @@ func TestSplit(t *testing.T) {
 		"two command split": {
 			args: []string{"first", "--one=two", "second", "-three=3", "--four=five"},
 			expected: []Group{
+				{},
 				{
 					CommandName: "first",
 					Flags: []KeyValue{
@@ -110,6 +116,7 @@ func TestSplit(t *testing.T) {
 		"stop": {
 			args: []string{"first", "--one=two", "second", "--", "--four=five"},
 			expected: []Group{
+				{},
 				{
 					CommandName: "first",
 					Flags: []KeyValue{

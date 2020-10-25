@@ -23,7 +23,7 @@ func TestType_Unmarshall(t *testing.T) {
 			input: Group{
 				"do-thing",
 				[]KeyValue{
-					KeyValue{
+					{
 						Key:   "--name",
 						Value: "chris",
 					},
@@ -37,7 +37,7 @@ func TestType_Unmarshall(t *testing.T) {
 			input: Group{
 				"do-thing",
 				[]KeyValue{
-					KeyValue{
+					{
 						Key:   "-c",
 						Value: "5",
 					},
@@ -109,7 +109,7 @@ func TestType_Unmarshall(t *testing.T) {
 		t.Run(caseName, func(t *testing.T) {
 			var actual appConfigMock
 			underTest := New(&c.input)
-			err := underTest.Unmarshall(&actual)
+			err := underTest.Unmarshal(&actual)
 			assert.NoError(t, err)
 			assert.True(t, c.expected.IsEqual(&actual))
 		})
