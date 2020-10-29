@@ -12,7 +12,7 @@ const (
 // For example:
 // `mycli --global command1 --for-command1 subcommand --for-subcommand --another-for-sub-command required positional args`
 // Split will take the above command and break it into sub-commands. The first group is always the global and will always exist.
-// args should not contain the first item, the executable's path
+// args should not contain the first item, the executable's path. e.g. we expect os.Args[1:]
 func Split(args []string) (out []Group) {
 	// Always create the first group. Even it there's no arguments, this is considered the global group
 	out = append(out, Group{
