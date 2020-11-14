@@ -6,7 +6,7 @@ import (
 )
 
 type Flags struct {
-	config flagsConfig
+	config flagsInternal
 }
 
 func New(flags Reader) *Flags {
@@ -17,7 +17,7 @@ func New(flags Reader) *Flags {
 
 func NewWithTypeParsers(flags Reader, parseRegistry parse_register.ValueSetter) *Flags {
 	return &Flags{
-		config: newFlagsConfig(
+		config: newFlagsInternal(
 			flags,
 			parseRegistry,
 			defaultNoOpSetReceiver,
@@ -27,7 +27,7 @@ func NewWithTypeParsers(flags Reader, parseRegistry parse_register.ValueSetter) 
 
 func NewWithEmitter(flags Reader, emitter SetReceiver) *Flags {
 	return &Flags{
-		config: newFlagsConfig(
+		config: newFlagsInternal(
 			flags,
 			defaultParseRegister,
 			emitter,
@@ -39,5 +39,5 @@ func NewWithEmitter(flags Reader, emitter SetReceiver) *Flags {
 // into should be a reference to a struct
 // This method will do some basic checks on the into value, but to help developers pass in the correct values
 func (e *Flags) Unmarshal(into interface{}) (err error) {
-	return into_struct.Unmarshall(into, newFlagsInternal(e.config, into))
+	return into_struct.Unmarshall(into, &e.config)
 }
