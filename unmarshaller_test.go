@@ -104,6 +104,99 @@ func TestType_Unmarshall(t *testing.T) {
 				Enabled: true,
 			},
 		},
+		"nested named wrong name": {
+			input: Group{
+				"do-thing",
+				[]KeyValue{
+					{
+						Key:   "--databases[0].nestedwrong.ConnTimeout",
+						Value: "30s",
+					},
+				},
+			},
+			expected: appConfigMock{
+				Databases: []dbConfigMock{
+					{},
+				},
+			},
+		},
+		"nested named correct name": {
+			input: Group{
+				"do-thing",
+				[]KeyValue{
+					{
+						Key:   "--databases[0].nestednamed.ConnTimeout",
+						Value: "10s",
+					},
+					{
+						Key:   "--databases[0].h",
+						Value: "test.example.com",
+					},
+					{
+						Key:   "--databases[1].n.ConnTimeout",
+						Value: "20s",
+					},
+					{
+						Key:   "--databases[2].n.c",
+						Value: "30s",
+					},
+					{
+						Key:   "-d[3].n.c",
+						Value: "40s",
+					},
+					{
+						Key:   "-d[4].nestednamed.c",
+						Value: "50s",
+					},
+				},
+			},
+			expected: appConfigMock{
+				Databases: []dbConfigMock{
+					{
+						NestedNamed: nestedDbConfigMock{
+							ConnTimeout: optional.DurationFrom(10 * time.Second),
+						},
+						Host: optional.StringFrom("test.example.com"),
+					},
+					{
+						NestedNamed: nestedDbConfigMock{
+							ConnTimeout: optional.DurationFrom(20 * time.Second),
+						},
+					},
+					{
+						NestedNamed: nestedDbConfigMock{
+							ConnTimeout: optional.DurationFrom(30 * time.Second),
+						},
+					},
+					{
+						NestedNamed: nestedDbConfigMock{
+							ConnTimeout: optional.DurationFrom(40 * time.Second),
+						},
+					},
+					{
+						NestedNamed: nestedDbConfigMock{
+							ConnTimeout: optional.DurationFrom(50 * time.Second),
+						},
+					},
+				},
+			},
+		},
+		"multi-bool": {
+			input: Group{
+				"do-thing",
+				[]KeyValue{
+					{
+						Key: "-efh",
+					},
+				},
+			},
+			expected: appConfigMock{
+				BoolE: true,
+				BoolF: true,
+				BoolG: false,
+				BoolH: true,
+			},
+		},
 	}
 	for caseName, c := range cases {
 		t.Run(caseName, func(t *testing.T) {

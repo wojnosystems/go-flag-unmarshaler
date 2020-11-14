@@ -1,11 +1,18 @@
 package flag_unmarshaler
 
-import "strings"
+import (
+	"os"
+	"strings"
+)
 
 const (
 	keyValueSeparator = "="
 	argListEnd        = "--"
 )
+
+func SplitArgs() (out []Group) {
+	return Split(os.Args[1:])
+}
 
 // Split converts os.Args[1:] into a slice of Groups. Each group may contain flags as key-value pairs.
 // In clis, each command/sub-command divides a domain of flags which may be interpreted by the parser
