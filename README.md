@@ -53,7 +53,7 @@ Flags can have long names and optionally short names. Flags must have a long nam
 Flags look like this:
 
 ```
---fieldName=bob
+--who=bob
 ```
 
 Values are always separated from the key name using an equal sign.
@@ -62,7 +62,7 @@ If you have a struct like this:
 
 ```go
 type myStruct struct {
-  FieldName string `flag:"fieldName" flag-usage:"Set this to some string to demonstrate"`
+  FieldName string `flag:"who" flag-usage:"Set this to some string to demonstrate"`
 }
 ```
 
@@ -72,4 +72,5 @@ After calling Unmarshall, myStruct.FieldName will be set to "bob".
 
 ## POSIX says I can separate option values with optional spaces!
 
-Yea. I don't care. This makes things needlessly complicated. Use equal signs. LMK if there's a special case I should consider for this.
+Yea. I don't care. This makes things -- IMO/limited experience -- needlessly complicated. Just use equal signs.
+LMK if there's a special case I should consider for this.
