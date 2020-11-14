@@ -71,14 +71,6 @@ func flagHasValue(flagWithValue string) bool {
 	return strings.Contains(flagWithValue, keyValueSeparator)
 }
 
-// isShortFlagDef returns true if the flag definition is a short-named flag (single rune)
-func isShortFlagDef(flagName string) bool {
-	if len(flagName) == 2 {
-		return flagName[0] == '-' && flagName[1] != '-'
-	}
-	return false
-}
-
 func isShortFlag(flagKey string) bool {
 	if len(flagKey) >= 2 {
 		return flagKey[0] == '-' && flagKey[1] != '-'

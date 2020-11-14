@@ -1,11 +1,11 @@
 package flag_unmarshaler
 
 import (
+	"fmt"
+	into_struct "github.com/wojnosystems/go-into-struct"
 	optional_parse_registry "github.com/wojnosystems/go-optional-parse-registry"
-	"reflect"
 	"regexp"
 	"strconv"
-	"strings"
 )
 
 // unmarshaler creates an environment parser given the provided registry
@@ -26,31 +26,29 @@ var (
 	defaultParseRegister   = optional_parse_registry.NewWithGoPrimitives()
 )
 
-func (f *flagsInternal) SetValue(structFullPath string, fieldV reflect.Value, fieldStruct reflect.StructField) (handled bool, err error) {
-	flagPaths := f.getFlagPaths(structFullPath, fieldStruct)
-	if !f.parseRegistry.IsSupported(fieldV.Addr().Interface()) {
+func (f *flagsInternal) SetValue(structFullPath into_struct.Path) (handled bool, err error) {
+	field := structFullPath.Top()
+	if field == nil {
+		return
+	}
+	flagPaths := f.getFlagPaths(structFullPath)
+	if !f.parseRegistry.IsSupported(field.Value().Addr().Interface()) {
 		return
 	}
 	// handled is true because we support deserializing this structure type.
 	handled = true
-	for _, name := range flagPaths {
-		value, ok := f.flags.Get(name)
+	for _, flagPath := range flagPaths {
+		value, ok := f.flags.Get(flagPath)
 		if ok {
-			// Some environment value was set, use it
+			// Some flag value was set, use it
 			valueWasSet := false
-			valueWasSet, err = f.parseRegistry.SetValue(fieldV.Addr().Interface(), value)
+			valueWasSet, err = f.parseRegistry.SetValue(field.Value().Addr().Interface(), value)
 			if err != nil {
-				err = &ParseError{
-					Path: StructFlagPath{
-						StructPath: structFullPath,
-						FlagPath:   structFullPath,
-					},
-					originalErr: err,
-				}
+				err = newParseError(structFullPath.String(), flagPath, err)
 				return
 			}
 			if valueWasSet {
-				f.emitter.ReceiveSet(structFullPath, structFullPath, value)
+				f.emitter.ReceiveSet(structFullPath, flagPath, value)
 			}
 			return
 		}
@@ -60,8 +58,8 @@ func (f *flagsInternal) SetValue(structFullPath string, fieldV reflect.Value, fi
 
 var flagIndexRegexp = regexp.MustCompile(`^(\d+)`)
 
-func (f *flagsInternal) SliceLen(structFullPath string, fieldV reflect.Value, fieldStruct reflect.StructField) (length int, err error) {
-	flagPaths := f.getFlagPaths(structFullPath, fieldStruct)
+func (f *flagsInternal) SliceLen(structFullPath into_struct.Path) (length int, err error) {
+	flagPaths := f.getFlagPaths(structFullPath)
 	maxIndex := int64(-1)
 	for _, path := range flagPaths {
 		for _, key := range f.flags.Keys(path + "[") {
@@ -70,11 +68,14 @@ func (f *flagsInternal) SliceLen(structFullPath string, fieldV reflect.Value, fi
 				var index int64
 				index, err = strconv.ParseInt(possibleNumber, 10, 0)
 				if err != nil {
+					err = newParseError(structFullPath.String(), key, err)
 					return
 				}
 				if index > maxIndex {
 					maxIndex = index
 				}
+			} else {
+				err = newParseError(structFullPath.String(), key, fmt.Errorf("index was not a number"))
 			}
 		}
 	}
@@ -84,27 +85,19 @@ func (f *flagsInternal) SliceLen(structFullPath string, fieldV reflect.Value, fi
 
 // getFlagPaths calculates all possible flag names for a path in the structure, converting field names (the default names) into flag and short-flag variants.
 // You can mix-and-match short, long and default names. All of them will be tried by the SetValue method.
-func (f *flagsInternal) getFlagPaths(structFullPath string, fieldStruct reflect.StructField) (flagPaths []string) {
-	structPathComponents := strings.Split(structFullPath, ".")
-	currentT := reflect.ValueOf(f.root).Elem().Type()
-	for componentIndex, componentName := range structPathComponents {
+func (f *flagsInternal) getFlagPaths(structFullPath into_struct.Path) (flagPaths []string) {
+	for pathIndex, pathPart := range structFullPath.Parts() {
 		newPaths := make([]string, 0, 2)
-		fieldName := ""
 		index := ""
-		if isComponentSlice(componentName) {
-			parts := strings.Split(componentName, "[")
-			fieldName = parts[0]
-			index = "[" + parts[1]
-		} else {
-			fieldName = componentName
+		if slicePart, ok := pathPart.(into_struct.PathSliceParter); ok {
+			index = fmt.Sprintf("[%d]", slicePart.Index())
 		}
-		component, _ := currentT.FieldByName(fieldName)
-		longFlagName := component.Tag.Get("flag")
-		shortFlagName := component.Tag.Get("flag-short")
+		longFlagName := pathPart.StructField().Tag.Get("flag")
+		shortFlagName := pathPart.StructField().Tag.Get("flag-short")
 		if longFlagName == "" && shortFlagName == "" {
-			longFlagName = fieldName
+			longFlagName = pathPart.Name()
 		}
-		if componentIndex == 0 {
+		if pathIndex == 0 {
 			newPaths = append(newPaths, "--"+longFlagName+index)
 		} else {
 			for _, path := range flagPaths {
@@ -112,7 +105,7 @@ func (f *flagsInternal) getFlagPaths(structFullPath string, fieldStruct reflect.
 			}
 		}
 		if shortFlagName != "" {
-			if componentIndex == 0 {
+			if pathIndex == 0 {
 				newPaths = append(newPaths, "-"+shortFlagName+index)
 			} else {
 				for _, path := range flagPaths {
@@ -122,14 +115,6 @@ func (f *flagsInternal) getFlagPaths(structFullPath string, fieldStruct reflect.
 		}
 		// next cycle
 		flagPaths = newPaths
-		currentT = component.Type
-		if index != "" {
-			currentT = currentT.Elem()
-		}
 	}
 	return
-}
-
-func isComponentSlice(componentName string) bool {
-	return strings.HasSuffix(componentName, "]")
 }

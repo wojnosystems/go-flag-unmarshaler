@@ -9,8 +9,9 @@ import (
 
 func TestType_Unmarshall(t *testing.T) {
 	cases := map[string]struct {
-		input    Group
-		expected appConfigMock
+		input       Group
+		expected    appConfigMock
+		expectedErr string
 	}{
 		"empty": {
 			input: Group{
@@ -71,6 +72,32 @@ func TestType_Unmarshall(t *testing.T) {
 					},
 				},
 			},
+		},
+		"slice index parse error": {
+			input: Group{
+				"do-thing",
+				[]KeyValue{
+					{
+						Key:   "--databases[nan].h",
+						Value: "example.org",
+					},
+				},
+			},
+			expected:    appConfigMock{},
+			expectedErr: `flag '--databases[nan].h' failed to parse because index was not a number`,
+		},
+		"slice index overflow error": {
+			input: Group{
+				"do-thing",
+				[]KeyValue{
+					{
+						Key:   "--databases[99999999999999999999999].h",
+						Value: "example.org",
+					},
+				},
+			},
+			expected:    appConfigMock{},
+			expectedErr: `flag '--databases[99999999999999999999999].h' failed to parse because strconv.ParseInt: parsing "99999999999999999999999": value out of range`,
 		},
 		"nested": {
 			input: Group{
@@ -197,14 +224,31 @@ func TestType_Unmarshall(t *testing.T) {
 				BoolH: true,
 			},
 		},
+		"parse error": {
+			input: Group{
+				"do-thing",
+				[]KeyValue{
+					{
+						Key:   "--Enabled",
+						Value: "notabool",
+					},
+				},
+			},
+			expected:    appConfigMock{},
+			expectedErr: "flag '--Enabled' failed to parse because unable to convert string to boolean value",
+		},
 	}
 	for caseName, c := range cases {
 		t.Run(caseName, func(t *testing.T) {
 			var actual appConfigMock
 			underTest := New(&c.input)
 			err := underTest.Unmarshal(&actual)
-			assert.NoError(t, err)
-			assert.True(t, c.expected.IsEqual(&actual))
+			if c.expectedErr == "" {
+				assert.NoError(t, err)
+				assert.True(t, c.expected.IsEqual(&actual))
+			} else {
+				assert.EqualError(t, err, c.expectedErr)
+			}
 		})
 	}
 }
