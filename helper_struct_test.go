@@ -3,8 +3,45 @@ package flag_unmarshaler
 // Defines a set of objects used with testing
 
 import (
-	"github.com/wojnosystems/go-optional"
+	"github.com/wojnosystems/go-optional/v2"
+	"time"
 )
+
+func stringEqual(a, b optional.String) bool {
+	equal := false
+	a.IfSetElse(func(aVal string) {
+		b.IfSet(func(bVal string) {
+			equal = aVal == bVal
+		})
+	}, func() {
+		equal = !b.IsSet()
+	})
+	return equal
+}
+
+func intEqual(a, b optional.Int) bool {
+	equal := false
+	a.IfSetElse(func(aVal int) {
+		b.IfSet(func(bVal int) {
+			equal = aVal == bVal
+		})
+	}, func() {
+		equal = !b.IsSet()
+	})
+	return equal
+}
+
+func durationEqual(a, b optional.Duration) bool {
+	equal := false
+	a.IfSetElse(func(aVal time.Duration) {
+		b.IfSet(func(bVal time.Duration) {
+			equal = aVal == bVal
+		})
+	}, func() {
+		equal = !b.IsSet()
+	})
+	return equal
+}
 
 type appConfigMock struct {
 	Name        optional.String `flag:"name" flag-short:"n"`
@@ -21,7 +58,7 @@ func (m appConfigMock) IsEqual(o *appConfigMock) bool {
 	if o == nil {
 		return false
 	}
-	if !m.Name.IsEqual(o.Name) || !m.ThreadCount.IsEqual(o.ThreadCount) || m.Enabled != o.Enabled {
+	if !stringEqual(m.Name, o.Name) || !intEqual(m.ThreadCount, o.ThreadCount) || m.Enabled != o.Enabled {
 		return false
 	}
 	if len(m.Databases) != len(o.Databases) {
@@ -47,9 +84,9 @@ func (m dbConfigMock) IsEqual(o *dbConfigMock) bool {
 	if o == nil {
 		return false
 	}
-	return m.Host.IsEqual(o.Host) &&
-		m.User.IsEqual(o.User) &&
-		m.Password.IsEqual(o.Password) &&
+	return stringEqual(m.Host, o.Host) &&
+		stringEqual(m.User, o.User) &&
+		stringEqual(m.Password, o.Password) &&
 		m.Nested.IsEqual(&o.Nested) &&
 		m.NestedNamed.IsEqual(&o.NestedNamed)
 }
@@ -62,5 +99,5 @@ func (m nestedDbConfigMock) IsEqual(o *nestedDbConfigMock) bool {
 	if o == nil {
 		return false
 	}
-	return m.ConnTimeout.IsEqual(o.ConnTimeout)
+	return durationEqual(m.ConnTimeout, o.ConnTimeout)
 }

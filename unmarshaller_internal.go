@@ -3,7 +3,7 @@ package flag_unmarshaler
 import (
 	"fmt"
 	into_struct "github.com/wojnosystems/go-into-struct"
-	optional_parse_registry "github.com/wojnosystems/go-optional-parse-registry"
+	optional_parse_registry "github.com/wojnosystems/go-optional-parse-registry/v2"
 	parse_register "github.com/wojnosystems/go-parse-register"
 	"regexp"
 	"strconv"

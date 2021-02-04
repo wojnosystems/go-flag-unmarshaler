@@ -2,7 +2,7 @@ package flag_unmarshaler
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/wojnosystems/go-optional"
+	"github.com/wojnosystems/go-optional/v2"
 	"testing"
 	"time"
 )
