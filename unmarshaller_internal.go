@@ -21,7 +21,7 @@ type flagsInternal struct {
 
 func newFlagsInternal(flags Reader, parseRegistry parse_register.ValueSetter, emitter SetReceiver) flagsInternal {
 	if flags == nil {
-		osGroup := SplitArgs()[0]
+		osGroup := OsSplitArgs()[0]
 		flags = &osGroup
 	}
 	if parseRegistry == nil {

@@ -10,7 +10,8 @@ const (
 	argListEnd        = "--"
 )
 
-func SplitArgs() (out []Group) {
+// OsSplitArgs converts the os.Args into groups of commands and options
+func OsSplitArgs() (out []Group) {
 	return Split(os.Args[1:])
 }
 
